@@ -26,5 +26,13 @@ Once finished, just join any Roblox game and you will see all fonts have been re
 If for any reason the progress hangs, it might mean an error occured. To identify the error, please download the debug program, which should load with the console, and create an issue report on GitHub with a screenshot of the error. We'll look into it.
 You can try and troubleshoot yourself, just try again and make sure you selected the proper folder/font path.
 
+# Developement :
+
+Everything is explained inside of main.py with comments. The program uses the following imports : tkinter for the UI, and a combination of os and shutil for the font replacement.
+
+If you need any extra help, contact me on Discord at Uiop3385#4285 (ID : 611557419222302721)
 
 You are free to do whatever you want with this program, as long as you keep original credit to me in the bottom label, for example, if you remake the program with more features, you can replace it with "Modified by [your_name], original by Uiop3385".
+
+
+**Thanks for using Roblox Font Replacer!**
