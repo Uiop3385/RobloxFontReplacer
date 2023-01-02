@@ -3,12 +3,15 @@ Roblox Font Replacer is a program developed in Python that allows users to easil
 This program and this guide were made for use on Windows ; because seriously, who does gaming on Mac.
 
 # How to use :
-**Keep the program open during the entire process**
+**Keep the program open during the entire process.**
+
 In order to use the program, you first need to select a replacement font. This is the font that will overwrite all other fonts in your Roblox fonts folder.
 You can find them at DiskLetter://Windows/Fonts, or you can download a font online and use the file straight from your downloads.
 **Make sure you copy the font over to another directory as the folder may not appear from the font selection menu.**
 In the program, click "Select Replacement Font". Now, head to the directory you've put the font in and select it.
+
 Now, you can move on to selecting your contents folder.
+
 To find your folder location, go to your desktop, right click on the Roblox Player shortcut, and select "Open file location". On Windows 11 you may need to click on "Show more options" to see it.
 You should arrive straight in the Roblox folder of the current installation. Double click on the path at the top of the file explorer and copy the path.
 Now, in the program, click on "Select contents Folder", and at the top of the file explorer, double click the file path, delete everything and paste the path you obtained.
@@ -22,5 +25,6 @@ Once finished, just join any Roblox game and you will see all fonts have been re
 
 If for any reason the progress hangs, it might mean an error occured. To identify the error, please download the debug program, which should load with the console, and create an issue report on GitHub with a screenshot of the error. We'll look into it.
 You can try and troubleshoot yourself, just try again and make sure you selected the proper folder/font path.
+
 
 You are free to do whatever you want with this program, as long as you keep original credit to me in the bottom label, for example, if you remake the program with more features, you can replace it with "Modified by [your_name], original by Uiop3385".
