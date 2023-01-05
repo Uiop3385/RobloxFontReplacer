@@ -253,6 +253,14 @@ optional = false
 python-versions = ">=3.6"
 
 [[package]]
+name = "pyglet"
+version = "2.0.3"
+description = "Cross-platform windowing and multimedia library"
+category = "main"
+optional = false
+python-versions = "*"
+
+[[package]]
 name = "pyparsing"
 version = "3.0.9"
 description = "pyparsing module - Classes and methods to define and execute parsing grammars"
@@ -478,7 +486,7 @@ testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "flake8 
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.8.0,<3.9"
-content-hash = "f328c469a46d9cb95c79b10c69318f07ccca3f40cc6eb43ef51c87ad2ff1879b"
+content-hash = "074d4397f2bd9db69b59a4b7d9de58753ca60c6f4b13c59bfa345a102f209c9b"
 
 [metadata.files]
 aiohttp = []
@@ -504,6 +512,7 @@ packaging = []
 parso = []
 pluggy = []
 pyflakes = []
+pyglet = []
 pyparsing = []
 python-lsp-jsonrpc = []
 pytoolconfig = []

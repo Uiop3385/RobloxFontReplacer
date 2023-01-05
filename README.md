@@ -23,7 +23,7 @@ On modern computers, this process should take no more than a second to complete.
 
 Once finished, just join any Roblox game and you will see all fonts have been replaced, including on the Escape menu, disconnection messages, and even the app itself.
 
-If for any reason the progress hangs, it might mean an error occured. To identify the error, please download the debug program, which should load with the console, and create an issue report on GitHub with a screenshot of the error. We'll look into it.
+If an error occurs, you should be notified by a notification. Make sure to follow the instructions it gives you.
 You can try and troubleshoot yourself, just try again and make sure you selected the proper folder/font path.
 
 # Developement :
