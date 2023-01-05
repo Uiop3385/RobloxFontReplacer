@@ -25,7 +25,7 @@ class App:
         self.folder_path = tk.StringVar()
 
         # Styling and stuff
-        font = CFont(file="data/fonts/FredokaOne-Regular.ttf", family = "Fredoka One", size=12)
+        font = CFont(file = "data/fonts/FredokaOne-Regular.ttf", family = "Fredoka One", size=12)
         ttk.Style().configure("fredoka.TCheckbutton", font = font)
         style = ThemedStyle(root)
         style.theme_use("arc")
@@ -106,7 +106,7 @@ class App:
         webbrowser.open_new(link)
         self.log(base64.b64encode("GitHub update link opened, ending program : {}".format(link).encode("utf-8")))
         quit()
-  
+
     def replace_fonts(self):
         # First line of error prevention
         if not self.selected_font:

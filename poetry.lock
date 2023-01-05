@@ -233,6 +233,18 @@ qa = ["flake8 (==3.8.3)", "mypy (==0.782)"]
 testing = ["docopt", "pytest (<6.0.0)"]
 
 [[package]]
+name = "pillow"
+version = "9.4.0"
+description = "Python Imaging Library (Fork)"
+category = "main"
+optional = false
+python-versions = ">=3.7"
+
+[package.extras]
+docs = ["furo", "olefile", "sphinx (>=2.4)", "sphinx-copybutton", "sphinx-inline-tabs", "sphinx-issues (>=3.0.1)", "sphinx-removed-in", "sphinxext-opengraph"]
+tests = ["check-manifest", "coverage", "defusedxml", "markdown2", "olefile", "packaging", "pyroma", "pytest", "pytest-cov", "pytest-timeout"]
+
+[[package]]
 name = "pluggy"
 version = "1.0.0"
 description = "plugin and hook calling mechanisms for python"
@@ -401,6 +413,17 @@ optional = false
 python-versions = ">=3.7"
 
 [[package]]
+name = "ttkthemes"
+version = "3.2.2"
+description = "A group of themes for the ttk extensions of Tkinter with a Tkinter.Tk wrapper"
+category = "main"
+optional = false
+python-versions = ">=3.5"
+
+[package.dependencies]
+pillow = "*"
+
+[[package]]
 name = "typing-extensions"
 version = "3.10.0.2"
 description = "Backported and Experimental Type Hints for Python 3.5+"
@@ -486,7 +509,7 @@ testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "flake8 
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.8.0,<3.9"
-content-hash = "074d4397f2bd9db69b59a4b7d9de58753ca60c6f4b13c59bfa345a102f209c9b"
+content-hash = "5d5d466c22162d70445a267b2362a56023fffe6a6e1d9d854114839dfff92964"
 
 [metadata.files]
 aiohttp = []
@@ -510,6 +533,7 @@ multidict = []
 numpy = []
 packaging = []
 parso = []
+pillow = []
 pluggy = []
 pyflakes = []
 pyglet = []
@@ -522,6 +546,7 @@ requests = []
 rope = []
 toml = []
 tomli = []
+ttkthemes = []
 typing-extensions = []
 ujson = []
 urllib3 = []
