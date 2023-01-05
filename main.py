@@ -141,7 +141,6 @@ class App:
             except Exception as e:
                 self.log(base64.b64encode("Detection error : {}".format(e).encode("utf-8")))
                 traceback.print_exc()
-                self.log("Process ended with status code 400")
                 self.log(base64.b64encode("Process ended with status code 400".encode("utf-8")))
                 messagebox.showerror("Exception", "An exception has occured and replacement could not start.\nYou've most likely chosen the wrong folder, please try again with the correct one.\nIf the issue persists, even with the correct folder, try again with logging enabled.\nPlease forward us this log via a GitHub issue with tag Exception.\nWe're sorry!")
                 return
