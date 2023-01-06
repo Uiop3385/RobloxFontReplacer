@@ -20,13 +20,13 @@ class App:
         self.selected_font = ""
         self.selected_folder = ""
         self.log_file = None
-        self.version = "1.1"
+        self.version = "1.1.1"
         self.font_path = tk.StringVar()
         self.folder_path = tk.StringVar()
 
         # Styling and stuff
-        font = CFont(file = "data/fonts/FredokaOne-Regular.ttf", family = "Fredoka One", size=12)
-        ttk.Style().configure("fredoka.TCheckbutton", font = font)
+        font = CFont(file = "data/fonts/arial.ttf", family = "ArialBest", size=12)
+        ttk.Style().configure("arial.TCheckbutton", font = Font(family = "ArialBest", size = 12))
         style = ThemedStyle(root)
         style.theme_use("arc")
       
@@ -34,17 +34,17 @@ class App:
         select_font_button = ttk.Button(text="Select Replacement Font", command=self.select_font)
         select_folder_button = ttk.Button(text="Select content Folder", command=self.select_folder)
         replace_fonts_button = ttk.Button(text="Replace Fonts", command=self.replace_fonts)
-        self.logging_checkbox = ttk.Checkbutton(self.root, text="Enable logging", style="fredoka.TCheckbutton", command=self.toggle_logging)
+        self.logging_checkbox = ttk.Checkbutton(self.root, text="Enable logging", style="arial.TCheckbutton", command=self.toggle_logging)
         self.logging_checkbox.state(['!alternate'])
         self.progress = ttk.Progressbar(orient="horizontal", length=200, mode="determinate")
 
         # Create labels
-        me = Label(self.root, text="Made by Uiop3385", font = Font(family = "Fredoka One", size = 7))
-        self.running = Label(self.root, text = f"You're currently running version {self.version}", font = Font(family = "Fredoka One", size = 7))
-        text = Label(self.root, text="Welcome to Roblox Font Replacer!", font = Font(family = "Fredoka One", size = 10), pady = 10)
-        self.progress_label = Label(self.root, text="Progress: 0/64", font = Font(family = "Fredoka One", size = 12), pady = 5)
-        self.selected_font_label = Label(self.root, text = f"Selected : {self.font_path.get()}", font = Font(family = "Fredoka One", size = 8), pady = 5)
-        self.selected_folder_label = Label(self.root, text = f"Selected : {self.folder_path.get()}", font = Font(family = "Fredoka One", size = 8), pady = 5)
+        me = Label(self.root, text="Made by Uiop3385", font = Font(family = "ArialBest", size = 7))
+        self.running = Label(self.root, text = f"You're currently running version {self.version}", font = Font(family = "ArialBest", size = 7))
+        text = Label(self.root, text="Welcome to Roblox Font Replacer!", font = Font(family = "ArialBest", size = 10), pady = 10)
+        self.progress_label = Label(self.root, text="Progress: 0/64", font = Font(family = "ArialBest", size = 12), pady = 5)
+        self.selected_font_label = Label(self.root, text = f"Selected : {self.font_path.get()}", font = Font(family = "ArialBest", size = 8), pady = 5)
+        self.selected_folder_label = Label(self.root, text = f"Selected : {self.folder_path.get()}", font = Font(family = "ArialBest", size = 8), pady = 5)
       
         # Lay out widgets
         text.pack(side = "top")
@@ -70,7 +70,7 @@ class App:
         self.selected_folder = filedialog.askdirectory()
         self.folder_path.set({self.selected_folder})
         self.selected_folder_label.config(text=f"Selected : {self.folder_path.get()}")
-  
+
     def toggle_logging(self):
         # Check if the checkbox is selected
         if self.logging_checkbox.instate(['selected']):
@@ -122,7 +122,10 @@ class App:
         try:
             response = requests.get("https://api.github.com/repos/Uiop3385/RobloxFontReplacer/releases/latest")
             self.new_version = response.json()["tag_name"]
-            yes = "yes"
+            if self.new_version != self.version:
+                yes = "yes"
+            else:
+                yes = "no"
         except Exception as e:
             self.log(base64.b64encode("Could not connect, update check aborted, error : {}".format(e).encode("utf-8")))
             yes = "no"
@@ -213,4 +216,5 @@ if __name__ == "__main__":
     root = tk.Tk()
     app = App(root)
     root.mainloop()
+
 
