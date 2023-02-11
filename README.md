@@ -26,15 +26,6 @@ Once finished, just join any Roblox game and you will see all fonts have been re
 If an error occurs, you should be notified by a notification. Make sure to follow the instructions it gives you.
 You can try and troubleshoot yourself, just try again and make sure you selected the proper folder/font path.
 
-# Backups :
-Starting from update 1.2, you are now able to save and restore to backups.
-
-All the information you need is provided via info boxes, so please read them through if you need help.
-
-To find your contents folder to restore, follow the same steps as the ones you would to select your contents folder normally.
-
-Backups take approximately 3-10 seconds to save depending on your computer's performances, so please remain patient during the operation. There will only be an error if the program displays an error, so if no error message appears, continue waiting.
-
 # Developement :
 
 Everything is explained inside of main.py with comments. The program uses the following imports : tkinter for the UI, and a combination of os and shutil for the font replacement.

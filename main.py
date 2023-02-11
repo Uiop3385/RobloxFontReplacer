@@ -12,7 +12,7 @@ from tkinter import filedialog, messagebox, Label
 from tkinter import ttk
 from tkinter.font import Font
 from tkextrafont import Font as CFont
-from ttkthemes import themed_tk, ThemedStyle
+from ttkthemes import ThemedStyle
 class App:
     def __init__(self, root):
         self.root = root
