@@ -1,3 +1,5 @@
+import pyi_splash
+pyi_splash.update_text("Extracting data")
 import os
 import shutil
 import datetime
@@ -6,70 +8,92 @@ import webbrowser
 import requests
 import tkinter as tk
 import base64
+import sys
+import threading
 from tkinter import filedialog, messagebox, Label
 from tkinter import ttk
 from tkinter.font import Font
 from tkextrafont import Font as CFont
 from ttkthemes import themed_tk, ThemedStyle
+pyi_splash.close()
 class App:
     def __init__(self, root):
         self.root = root
+        self.root.resizable(False,False)
         self.root.title("Roblox Font Replacer by Uiop3385")
 
         # Set instance variables
         self.selected_font = ""
         self.selected_folder = ""
         self.log_file = None
-        self.version = "1.1"
+        self.version = "1.2"
         self.font_path = tk.StringVar()
         self.folder_path = tk.StringVar()
 
         # Styling and stuff
-        font = CFont(file = "data/fonts/FredokaOne-Regular.ttf", family = "Fredoka One", size=12)
-        ttk.Style().configure("fredoka.TCheckbutton", font = font)
+        font = CFont(file = "data/fonts/Roboto-Regular.ttf", family = "Roboto", size=12)
+        ttk.Style().configure("varela.TCheckbutton", font = Font(family = "Roboto", size = 12))
         style = ThemedStyle(root)
         style.theme_use("arc")
       
         # Create widgets
+        
         select_font_button = ttk.Button(text="Select Replacement Font", command=self.select_font)
         select_folder_button = ttk.Button(text="Select content Folder", command=self.select_folder)
         replace_fonts_button = ttk.Button(text="Replace Fonts", command=self.replace_fonts)
-        self.logging_checkbox = ttk.Checkbutton(self.root, text="Enable logging", style="fredoka.TCheckbutton", command=self.toggle_logging)
+        self.logging_checkbox = ttk.Checkbutton(self.root, text="Enable logging", style="varela.TCheckbutton", command=self.toggle_logging)
         self.logging_checkbox.state(['!alternate'])
         self.progress = ttk.Progressbar(orient="horizontal", length=200, mode="determinate")
+        revert_button = ttk.Button(root, text="Revert from Backup", command=self.revert_from_backup)
+        delete_backups_button = ttk.Button(root, text="Clear Backups", command=self.remove_backups)
 
         # Create labels
-        me = Label(self.root, text="Made by Uiop3385", font = Font(family = "Fredoka One", size = 7))
-        self.running = Label(self.root, text = f"You're currently running version {self.version}", font = Font(family = "Fredoka One", size = 7))
-        text = Label(self.root, text="Welcome to Roblox Font Replacer!", font = Font(family = "Fredoka One", size = 10), pady = 10)
-        self.progress_label = Label(self.root, text="Progress: 0/64", font = Font(family = "Fredoka One", size = 12), pady = 5)
-        self.selected_font_label = Label(self.root, text = f"Selected : {self.font_path.get()}", font = Font(family = "Fredoka One", size = 8), pady = 5)
-        self.selected_folder_label = Label(self.root, text = f"Selected : {self.folder_path.get()}", font = Font(family = "Fredoka One", size = 8), pady = 5)
-      
+        me = Label(self.root, text="Made by Uiop3385", font = Font(family = "Roboto", size = 7))
+        self.running = Label(self.root, text = f"You're currently running version {self.version}", font = Font(family = "Roboto", size = 7))
+        text = Label(self.root, text="Welcome to Roblox Font Replacer!", font = Font(family = "Roboto", size = 11), pady = 10)
+        self.progress_label = Label(self.root, text="Progress: 0/64", font = Font(family = "Roboto", size = 12), pady = 5)
+        self.selected_font_label = Label(self.root, text = f"Selected : {self.font_path.get()}", font = Font(family = "Roboto", size = 8), pady = 5)
+        self.selected_folder_label = Label(self.root, text = f"Selected : {self.folder_path.get()}", font = Font(family = "Roboto", size = 8), pady = 5)
+        font_replacer = Label(self.root, text="Replace fonts :", font = Font(family = "Roboto", size = 11), pady = 5)
+        backup_reverter = Label(self.root, text="Backups :", font = Font(family = "Roboto", size = 11), pady = 5)
+        frame_top = ttk.Frame(root, height=2, relief=tk.SUNKEN)
+        frame_middle = ttk.Frame(root, height=2, relief=tk.SUNKEN)
+        frame_bottom = ttk.Frame(root, height=2, relief=tk.SUNKEN)
+
         # Lay out widgets
         text.pack(side = "top")
+        frame_top.pack(fill=tk.X, padx = 15)
+        font_replacer.pack(side = "top")
         select_font_button.pack(side = "top")
         self.selected_font_label.pack(side = "top")
         select_folder_button.pack(side = "top")
         self.selected_folder_label.pack(side = "top")
-        replace_fonts_button.pack(side = "top")
+        replace_fonts_button.pack(side = "top", pady = 5)
         self.logging_checkbox.pack(side = "top")
-        self.progress.pack(side = "top")
+        self.progress.pack(side = "top", pady = 5)
         self.progress_label.pack(side = "top")
         self.running.pack(side = "bottom")
+        frame_middle.pack(fill=tk.X, padx = 15)
+        backup_reverter.pack(side = "top")
         me.pack(side = "bottom")
+        frame_bottom.pack(fill=tk.X, padx = 15, pady = 5, side = "bottom")
+        revert_button.pack(side = "bottom", pady = 5)
+        delete_backups_button.pack(side = "bottom")
 
     def select_font(self):
         # Prompts the user to select a font
-        self.selected_font = filedialog.askopenfilename(filetypes=[("Font Files", "*.ttf;*.otf")])
+        self.selected_font = filedialog.askopenfilename(filetypes=[("Font Files", "*.ttf;*.otf")], title = "Select a replacement font")
         self.font_path.set({self.selected_font})
         self.selected_font_label.config(text=f"Selected : {self.font_path.get()}")
       
     def select_folder(self):
         # Prompts the user to select a folder
-        self.selected_folder = filedialog.askdirectory()
+        self.selected_folder = filedialog.askdirectory(title = "Select your Roblox contents folder")
         self.folder_path.set({self.selected_folder})
         self.selected_folder_label.config(text=f"Selected : {self.folder_path.get()}")
+
+    def quit(self):
+        sys.exit()
   
     def toggle_logging(self):
         # Check if the checkbox is selected
@@ -105,7 +129,61 @@ class App:
         link = "https://github.com/Uiop3385/RobloxFontReplacer/releases/tag/" + self.new_version
         webbrowser.open_new(link)
         self.log(base64.b64encode("GitHub update link opened, ending program : {}".format(link).encode("utf-8")))
-        quit()
+        self.quit()
+
+    def revert_from_backup(self):
+        global backup_window
+        messagebox.showinfo("Backup", "You will be prompted to select your backup folder, after which you will be prompted to choose the contents folder you would like to revert.")
+        self.backup_folder = filedialog.askdirectory(initialdir=os.path.join(os.getcwd(), "backups"), title="Select Backup Folder")
+        self.contents_folder = filedialog.askdirectory(title="Select contents folder to overwrite")
+        if self.backup_folder:
+            try:
+                backup_window = tk.Tk()
+                backup_window.title("Working on it...")
+                backup_window.geometry("100x10")
+                style = ThemedStyle(backup_window)
+                style.theme_use("arc")
+                self.progress = ttk.Progressbar(backup_window, mode="indeterminate")
+                self.progress.pack()
+                self.progress.start()
+                thread = threading.Thread(target=self.backup)
+                thread.start()
+                backup_window.after(100, lambda: self.check_thread(thread, self.progress, backup_window))
+                backup_window.mainloop()
+            except Exception as e:
+                backup_window.destroy()
+                messagebox.showerror("Exception", "An error occured when reverting. Please try again, and make sure you've selected the proper folders.")
+
+    def check_thread(self, thread, progress, backup_window):
+        if thread.is_alive():
+            backup_window.after(100, lambda: self.check_thread(thread, progress, backup_window))
+        else:
+            self.progress.stop()
+            self.progress.pack_forget()
+            backup_window.destroy()
+            messagebox.showinfo("Success!", "The revert was successful.")
+
+    def backup(self):
+        try:
+            global backup_window
+            shutil.copytree(self.backup_folder, self.contents_folder, dirs_exist_ok=True)
+        except Exception as e:
+            backup_window.destroy()
+            messagebox.showerror("Exception", "An error occured when reverting. Please try again, and make sure you've selected the proper folders.")
+
+    def remove_backups(self):
+        result = messagebox.askyesno("Warning", "Are you sure you want to remove all backups? This is irreversible!")
+        if result:
+            try:
+                messagebox.showinfo("Preparing to delete", "The backups will now be deleted. Expect a few seconds of unresponsiveness.")
+                backups_folder = "backups"
+                shutil.rmtree(backups_folder)
+                os.mkdir("backups")
+                messagebox.showinfo("Success", "The backups have been cleared.")
+            except Exception as e:
+                messagebox.showerror("Exception", "An error occured when deleting. Please try again, and if it still does not work, delete the backups folder manually.")
+        else:
+            messagebox.showinfo("Cancelled", "The operation was cancelled.")
 
     def replace_fonts(self):
         # First line of error prevention
@@ -122,7 +200,10 @@ class App:
         try:
             response = requests.get("https://api.github.com/repos/Uiop3385/RobloxFontReplacer/releases/latest")
             self.new_version = response.json()["tag_name"]
-            yes = "yes"
+            if self.new_version != self.version:
+                yes = "yes"
+            else:
+                yes = "no"
         except Exception as e:
             self.log(base64.b64encode("Could not connect, update check aborted, error : {}".format(e).encode("utf-8")))
             yes = "no"
@@ -145,6 +226,20 @@ class App:
                 messagebox.showerror("Exception", "An exception has occured and replacement could not start.\nYou've most likely chosen the wrong folder, please try again with the correct one.\nIf the issue persists, even with the correct folder, try again with logging enabled.\nPlease forward us this log via a GitHub issue with tag Exception.\nWe're sorry!")
                 return
     
+            result = messagebox.askyesno("Save Backup", "Would you like to save a backup of your contents folder?")
+            if result:
+                try:
+                    now = datetime.datetime.now()
+                    messagebox.showinfo("Preparing to save", "Your backup will now be saved. Expect a few seconds of unresponsiveness.")
+                    shutil.copytree(self.selected_folder, f"backups/contents_backup_{now.year}-{now.month}-{now.day}_{now.hour}-{now.minute}-{now.second}")
+                    messagebox.showinfo("Success", "Backup saved successfully. Replacement will now begin.")
+                except Exception as e:
+                    self.log(base64.b64encode("Backup error : {}".format(e).encode("utf-8")))
+                    traceback.print_exc()
+                    messagebox.showerror("Exception", "An error occured when saving the backup. The program will ignore this error and start replacing the fonts. If you'd like to cancel this process, please close the program.")
+            else:
+                messagebox.showinfo("Cancelled", "Backup not saved")
+
             # Update the progress bar to show the number of fonts
             self.progress["maximum"] = len(fonts)
     
@@ -207,10 +302,11 @@ class App:
 
         # Show a message box thanking the user for using the program
         messagebox.showinfo("Done", "Fonts replaced successfully! Thank you for using Roblox Font Replacer.")
-        quit()
+        self.quit()
+
+    messagebox.showwarning("Disclaimer", "Roblox Font Replacer does not take responsibility for any issues encountered. Your bug/exploiter reports (mostly screenshots) in games may be ignored or lose in credibility due to the modified fonts. By continuing to use RFR, you agree to the above. The program will now start.")
 
 if __name__ == "__main__":
     root = tk.Tk()
     app = App(root)
     root.mainloop()
-
