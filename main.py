@@ -16,6 +16,7 @@ from ttkthemes import themed_tk, ThemedStyle
 class App:
     def __init__(self, root):
         self.root = root
+        self.root.resizable(False,False)
         self.root.title("Roblox Font Replacer by Uiop3385")
 
         # Set instance variables
