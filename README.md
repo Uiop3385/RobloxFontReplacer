@@ -26,8 +26,23 @@ Once finished, just join any Roblox game and you will see all fonts have been re
 If an error occurs, you should be notified by a notification. Make sure to follow the instructions it gives you.
 You can try and troubleshoot yourself, just try again and make sure you selected the proper folder/font path.
 
+# Exclusions :
+Starting from update 1.3, you can now choose fonts not to replace.
+
+This allows for further customization, by letting you keep the fonts you want, and have multiple different fonts replaced at once!
+
+The possibilities are endless with this new update. To use it, simply select your content folder and you'll be able to select the fonts you'd not want replaced by pressing the Exclusions button, inside the Exclusions sub category, inside the Replace Fonts category.
+
+You can view which fonts you've chosen not to replace by clicking View Excluded Fonts, and you can remove fonts you've accidentally chosen or just don't want to exclude anymore by pressing the Modify Excluded Fonts. The process is extremely similar to choosing exclusions to add.
+
+You can change the font between each replacement now as the program no longer quits after replacing.
+
+**In order to select multiple fonts at once, use Shift+Click or Ctrl+Click. The first one will select the entire range between the first one you selected and the one you clicked on after, while the latter will select them individually.**
+
 # Backups :
 Starting from update 1.2, you are now able to save and restore to backups.
+
+Backups are managed from the Backups category.
 
 All the information you need is provided via info boxes, so please read them through if you need help.
 

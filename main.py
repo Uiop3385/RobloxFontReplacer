@@ -1,3 +1,5 @@
+import pyi_splash
+pyi_splash.update_text("Extracting data")
 import os
 import shutil
 import datetime
@@ -13,6 +15,7 @@ from tkinter import ttk
 from tkinter.font import Font
 from tkextrafont import Font as CFont
 from ttkthemes import themed_tk, ThemedStyle
+pyi_splash.close()
 class App:
     def __init__(self, root):
         self.root = root
@@ -23,9 +26,10 @@ class App:
         self.selected_font = ""
         self.selected_folder = ""
         self.log_file = None
-        self.version = "1.2"
+        self.version = "1.3"
         self.font_path = tk.StringVar()
         self.folder_path = tk.StringVar()
+        self.excluded_fonts = []
 
         # Styling and stuff
         font = CFont(file = "data/fonts/Roboto-Regular.ttf", family = "Roboto", size=12)
@@ -43,17 +47,24 @@ class App:
         self.progress = ttk.Progressbar(orient="horizontal", length=200, mode="determinate")
         revert_button = ttk.Button(root, text="Revert from Backup", command=self.revert_from_backup)
         delete_backups_button = ttk.Button(root, text="Clear Backups", command=self.remove_backups)
+        exceptions_button = ttk.Button(root, text = "Exclusions", command = self.exceptions)
+        view_excluded_button = ttk.Button(root, text = "View Excluded Fonts", command = self.view_exceptions)
+        remove_exclusions_button = ttk.Button(root, text = "Change Excluded Fonts", command = self.remove_exceptions)
 
         # Create labels
         me = Label(self.root, text="Made by Uiop3385", font = Font(family = "Roboto", size = 7))
         self.running = Label(self.root, text = f"You're currently running version {self.version}", font = Font(family = "Roboto", size = 7))
         text = Label(self.root, text="Welcome to Roblox Font Replacer!", font = Font(family = "Roboto", size = 11), pady = 10)
-        self.progress_label = Label(self.root, text="Progress: 0/64", font = Font(family = "Roboto", size = 12), pady = 5)
+        self.progress_label = Label(self.root, text="Progress: 0/??", font = Font(family = "Roboto", size = 12), pady = 5)
         self.selected_font_label = Label(self.root, text = f"Selected : {self.font_path.get()}", font = Font(family = "Roboto", size = 8), pady = 5)
         self.selected_folder_label = Label(self.root, text = f"Selected : {self.folder_path.get()}", font = Font(family = "Roboto", size = 8), pady = 5)
         font_replacer = Label(self.root, text="Replace fonts :", font = Font(family = "Roboto", size = 11), pady = 5)
         backup_reverter = Label(self.root, text="Backups :", font = Font(family = "Roboto", size = 11), pady = 5)
+        exceptions = Label(self.root, text="Exclusions :", font = Font(family = "Roboto", size = 10))
         frame_top = ttk.Frame(root, height=2, relief=tk.SUNKEN)
+        mini_frame_top = ttk.Frame(root, height=2, relief=tk.SUNKEN)
+        mini_frame_middle = ttk.Frame(root, height=2, relief=tk.SUNKEN)
+        mini_frame_bottom = ttk.Frame(root, height=2, relief=tk.SUNKEN)
         frame_middle = ttk.Frame(root, height=2, relief=tk.SUNKEN)
         frame_bottom = ttk.Frame(root, height=2, relief=tk.SUNKEN)
 
@@ -63,8 +74,15 @@ class App:
         font_replacer.pack(side = "top")
         select_font_button.pack(side = "top")
         self.selected_font_label.pack(side = "top")
+        mini_frame_top.pack(fill=tk.X, padx = 60, pady = 5)
         select_folder_button.pack(side = "top")
         self.selected_folder_label.pack(side = "top")
+        mini_frame_middle.pack(fill=tk.X, padx = 60, pady = 5)
+        exceptions.pack(side = "top")
+        exceptions_button.pack(side = "top", pady = 5)
+        view_excluded_button.pack(side = "top")
+        remove_exclusions_button.pack(side = "top", pady = 5)
+        mini_frame_bottom.pack(fill=tk.X, padx = 60, pady = 5)
         replace_fonts_button.pack(side = "top", pady = 5)
         self.logging_checkbox.pack(side = "top")
         self.progress.pack(side = "top", pady = 5)
@@ -182,6 +200,162 @@ class App:
         else:
             messagebox.showinfo("Cancelled", "The operation was cancelled.")
 
+    def exceptions(self):
+        # Check if content folder has been selected
+        if self.selected_folder == "":
+            messagebox.showerror("Error", "Please select the content folder.")
+            return
+
+        # Create a new window for the exceptions function
+        exceptions_window = tk.Tk()
+        exceptions_window.resizable(False,False)
+        exceptions_window.title("Select exceptions")
+        style = ThemedStyle(exceptions_window)
+        style.theme_use("arc")
+
+        # String explaining the function
+        Label(exceptions_window, text="Select the fonts you want to exclude from the replacement :").pack(pady = 5)
+
+        # List to display all the fonts that passed the check
+        font_list = tk.Listbox(exceptions_window, selectmode="extended")
+
+        # Get all the fonts in the content/fonts folder and ignore the exceptions
+        try:
+            fonts = os.listdir(os.path.join(self.selected_folder, "fonts"))
+            exceptions = ["RobloxEmoji.ttf", "TwemojiMozilla.ttf", "gamecontrollerdb.txt"]
+            for font in fonts:
+                if os.path.isfile(os.path.join(self.selected_folder, "fonts", font)) and font not in exceptions:
+                    font_list.insert(tk.END, font)
+        except Exception as e:
+            exceptions_window.destroy()
+            messagebox.showerror("Exception", "An error has occured loading the fonts. You may have selected an incorrect folder.")
+
+        def search_fonts(event=None):
+            try:
+                search_term = search_bar.get()
+                filtered_fonts = list(filter(lambda x: search_term in x, fonts))
+                font_list.delete(0, tk.END)
+                for font in filtered_fonts:
+                    font_list.insert(tk.END, font)
+            except Exception as e:
+                exceptions_window.destroy()
+                messagebox.showerror("Exception", "An error has occured searching for fonts. Try again.")
+
+        def on_focus_out(event, entry):
+            if not entry.get():
+                entry.insert(0, "Search (Caps Sensitive!)")
+
+        def on_focus_in(event, entry):
+            if entry.get() == "Search (Caps Sensitive!)":
+                entry.delete(0, tk.END)
+
+        # Search bar
+        search_bar = ttk.Entry(exceptions_window, width = 25)
+        search_bar.pack(pady = 5)
+        search_bar.insert(0, "Search (Caps Sensitive!)")
+        search_bar.bind("<FocusOut>", lambda event: on_focus_out(event, search_bar))
+        search_bar.bind("<FocusIn>", lambda event: on_focus_in(event, search_bar))
+        search_bar.bind("<KeyRelease>", search_fonts)
+
+        font_list.pack()
+
+        # Confirm button to save the changes
+        def confirm():
+            try:
+                for index in font_list.curselection():
+                    self.excluded_fonts.append(font_list.get(index))
+                messagebox.showinfo("Info", f"The following fonts will not be replaced : {self.excluded_fonts}")
+                exceptions_window.destroy()
+            except Exception as e:
+                exceptions_window.destroy()
+                messagebox.showerror("Exception", "An error occured while confirming changes. Please try again.")
+
+        confirm_button = ttk.Button(exceptions_window, text="Confirm", command=confirm)
+        confirm_button.pack(pady = 5)
+
+        exceptions_window.mainloop()
+
+    def view_exceptions(self):
+        if self.excluded_fonts:
+            messagebox.showinfo("Exclusions selected", f"The following fonts will be excluded from the next replacement : {self.excluded_fonts}")
+        else:
+            messagebox.showwarning("No exclusions selected", "You have not yet chosen any fonts to exclude. You can exclude fonts by pressing the 'Exclusions' button.")
+
+    def remove_exceptions(self):
+        # Check if there are excluded fonts
+        if not self.excluded_fonts:
+            messagebox.showwarning("No exclusions selected", "You have not yet chosen any fonts to exclude. You can exclude fonts by pressing the 'Exclusions' button.")
+            return
+
+        # Create a new window for the exceptions function
+        remove_exceptions_window = tk.Tk()
+        remove_exceptions_window.resizable(False,False)
+        remove_exceptions_window.title("Remove exceptions")
+        style = ThemedStyle(remove_exceptions_window)
+        style.theme_use("arc")
+
+        # String explaining the function
+        Label(remove_exceptions_window, text="Select the fonts you want to remove from your list of exclusions :").pack(pady = 5)
+
+        # List to display all the excluded fonts
+        font_list = tk.Listbox(remove_exceptions_window, selectmode="extended")
+
+        # Get all the excluded fonts
+        try:
+            fonts = self.excluded_fonts
+            for font in fonts:
+                font_list.insert(tk.END, font)
+        except Exception as e:
+            remove_exceptions_window.destroy()
+            messagebox.showerror("Exception", "An error has occured loading the fonts. You may have selected an incorrect folder.")
+
+        def search_fonts(event=None):
+            try:
+                search_term = search_bar.get()
+                filtered_fonts = list(filter(lambda x: search_term in x, fonts))
+                font_list.delete(0, tk.END)
+                for font in filtered_fonts:
+                    font_list.insert(tk.END, font)
+            except Exception as e:
+                remove_exceptions_window.destroy()
+                messagebox.showerror("Exception", "An error has occured searching for fonts. Try again.")
+
+        def on_focus_out(event, entry):
+            if not entry.get():
+                entry.insert(0, "Search (Caps Sensitive!)")
+
+        def on_focus_in(event, entry):
+            if entry.get() == "Search (Caps Sensitive!)":
+                entry.delete(0, tk.END)
+
+        # Search bar
+        search_bar = ttk.Entry(remove_exceptions_window, width = 25)
+        search_bar.pack(pady = 5)
+        search_bar.insert(0, "Search (Caps Sensitive!)")
+        search_bar.bind("<FocusOut>", lambda event: on_focus_out(event, search_bar))
+        search_bar.bind("<FocusIn>", lambda event: on_focus_in(event, search_bar))
+        search_bar.bind("<KeyRelease>", search_fonts)
+
+        font_list.pack()
+
+        # Confirm button to save the changes
+        def confirm():
+            try:
+                unexcluded_fonts = []
+                for index in font_list.curselection():
+                    self.excluded_fonts.remove(font_list.get(index))
+                    unexcluded_fonts.append(font_list.get(index))
+                messagebox.showinfo("Info", f"The following fonts will still be excluded : {self.excluded_fonts}, and the following fonts will no longer be excluded : {unexcluded_fonts}")
+                remove_exceptions_window.destroy()
+            except Exception as e:
+                remove_exceptions_window.destroy()
+                messagebox.showerror("Exception", "An error occured while confirming changes. Please try again.")
+
+        confirm_button = ttk.Button(remove_exceptions_window, text="Confirm", command=confirm)
+        confirm_button.pack(pady = 5)
+
+        remove_exceptions_window.mainloop()
+
     def replace_fonts(self):
         # First line of error prevention
         if not self.selected_font:
@@ -222,12 +396,14 @@ class App:
                 self.log(base64.b64encode("Process ended with status code 400".encode("utf-8")))
                 messagebox.showerror("Exception", "An exception has occured and replacement could not start.\nYou've most likely chosen the wrong folder, please try again with the correct one.\nIf the issue persists, even with the correct folder, try again with logging enabled.\nPlease forward us this log via a GitHub issue with tag Exception.\nWe're sorry!")
                 return
+
+            messagebox.showwarning("Disclaimer", "Roblox Font Replacer does not take responsibility for any issues encountered while using the program, or after using the program. If you disagree, or prefer not to take any risks, then please exit now.")
     
             result = messagebox.askyesno("Save Backup", "Would you like to save a backup of your contents folder?")
             if result:
                 try:
                     now = datetime.datetime.now()
-                    messagebox.showinfo("Preparing to save", "Your backup will now be saved. Expect a few seconds of unresponsiveness.")
+                    messagebox.showinfo("Preparing to save", "Your backup will now be saved. Expect a few seconds of unresponsiveness. If nothing happens after 5 seconds, try clicking on the program.")
                     shutil.copytree(self.selected_folder, f"backups/contents_backup_{now.year}-{now.month}-{now.day}_{now.hour}-{now.minute}-{now.second}")
                     messagebox.showinfo("Success", "Backup saved successfully. Replacement will now begin.")
                 except Exception as e:
@@ -245,9 +421,14 @@ class App:
             # Replace each font
             for i, font in enumerate(fonts):
                 try:
-                    # Check if the font is one of the two that should be kept
+                    # Check if the font is one of the three that should be kept
                     if font in ["RobloxEmoji.ttf", "TwemojiMozilla.ttf", "gamecontrollerdb.txt"]:
                         self.log(base64.b64encode("Protected file skipped : {}".format(font).encode("utf-8")))
+                        continue
+
+                    # Check if the font has been excluded
+                    if font in self.excluded_fonts:
+                        self.log(base64.b64encode("Excluded file skipped : {}".format(font).encode("utf-8")))
                         continue
           
                     # Get the file extension of the selected font
@@ -289,6 +470,7 @@ class App:
                   return
                 # Update the progress bar and label
                 self.progress["value"] = i + 1
+                print(self.progress["value"])
                 self.progress_label["text"] = f"Progress: {i+1}/{len(fonts)}"
                 self.root.update()
 
@@ -298,10 +480,8 @@ class App:
         self.log(base64.b64encode("Process ended with status code 200".encode("utf-8")))
 
         # Show a message box thanking the user for using the program
-        messagebox.showinfo("Done", "Fonts replaced successfully! Thank you for using Roblox Font Replacer.")
-        self.quit()
-
-    messagebox.showwarning("Disclaimer", "Roblox Font Replacer does not take responsibility for any issues encountered. Your bug/exploiter reports (mostly screenshots) in games may be ignored or lose in credibility due to the modified fonts. By continuing to use RFR, you agree to the above. The program will now start.")
+        messagebox.showinfo("Done", "Fonts replaced successfully! Thank you for using Roblox Font Replacer. Exceptions have been reset.")
+        self.excluded_fonts = []
 
 if __name__ == "__main__":
     root = tk.Tk()
