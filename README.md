@@ -2,6 +2,8 @@
 Roblox Font Replacer is a program developed in Python that allows users to easily replace their Roblox fonts to make customization easier.
 This program and this guide were made for use on Windows ; because seriously, who does gaming on Mac.
 
+RFR is the easiest and most powerful way to change your roblox fonts, with it's friendly User Interface.
+
 # How to use :
 **Keep the program open during the entire process.**
 
