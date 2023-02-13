@@ -1,5 +1,3 @@
-import pyi_splash
-pyi_splash.update_text("Extracting data")
 import os
 import shutil
 import datetime
@@ -15,7 +13,6 @@ from tkinter import ttk
 from tkinter.font import Font
 from tkextrafont import Font as CFont
 from ttkthemes import themed_tk, ThemedStyle
-pyi_splash.close()
 class App:
     def __init__(self, root):
         self.root = root
