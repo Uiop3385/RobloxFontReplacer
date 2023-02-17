@@ -1,5 +1,3 @@
-import pyi_splash
-pyi_splash.update_text("Extracting data")
 import os
 import shutil
 import datetime
@@ -10,23 +8,25 @@ import tkinter as tk
 import base64
 import sys
 import threading
+import zipfile
+import json
 from tkinter import filedialog, messagebox, Label
 from tkinter import ttk
 from tkinter.font import Font
 from tkextrafont import Font as CFont
 from ttkthemes import themed_tk, ThemedStyle
-pyi_splash.close()
 class App:
     def __init__(self, root):
         self.root = root
         self.root.resizable(False,False)
+        root.iconbitmap("data/images/icon.ico")
         self.root.title("Roblox Font Replacer by Uiop3385")
 
         # Set instance variables
         self.selected_font = ""
         self.selected_folder = ""
         self.log_file = None
-        self.version = "1.3"
+        self.version = "1.3.1"
         self.font_path = tk.StringVar()
         self.folder_path = tk.StringVar()
         self.excluded_fonts = []
@@ -149,13 +149,14 @@ class App:
     def revert_from_backup(self):
         global backup_window
         messagebox.showinfo("Backup", "You will be prompted to select your backup folder, after which you will be prompted to choose the contents folder you would like to revert.")
-        self.backup_folder = filedialog.askdirectory(initialdir=os.path.join(os.getcwd(), "backups"), title="Select Backup Folder")
+        self.backup_folder = filedialog.askopenfilename(filetypes=[("Backup files", "*.rfrbckp")], initialdir=os.path.join(os.getcwd(), "backups"), title="Select Backup Folder")
         self.contents_folder = filedialog.askdirectory(title="Select contents folder to overwrite")
         if self.backup_folder:
             try:
                 backup_window = tk.Tk()
                 backup_window.title("Working on it...")
                 backup_window.geometry("100x10")
+                backup_window.iconbitmap("data/images/icon.ico")
                 style = ThemedStyle(backup_window)
                 style.theme_use("arc")
                 self.progress = ttk.Progressbar(backup_window, mode="indeterminate")
@@ -163,7 +164,7 @@ class App:
                 self.progress.start()
                 thread = threading.Thread(target=self.backup)
                 thread.start()
-                backup_window.after(100, lambda: self.check_thread(thread, self.progress, backup_window))
+                backup_window.after(10, lambda: self.check_thread(thread, self.progress, backup_window))
                 backup_window.mainloop()
             except Exception as e:
                 backup_window.destroy()
@@ -171,7 +172,7 @@ class App:
 
     def check_thread(self, thread, progress, backup_window):
         if thread.is_alive():
-            backup_window.after(100, lambda: self.check_thread(thread, progress, backup_window))
+            backup_window.after(10, lambda: self.check_thread(thread, progress, backup_window))
         else:
             self.progress.stop()
             self.progress.pack_forget()
@@ -181,7 +182,14 @@ class App:
     def backup(self):
         try:
             global backup_window
-            shutil.copytree(self.backup_folder, self.contents_folder, dirs_exist_ok=True)
+            shutil.rmtree(f"{self.contents_folder}/fonts")
+            os.mkdir(f"{self.contents_folder}/fonts")
+            with zipfile.ZipFile(f"{self.backup_folder}", 'r') as zip_file:
+                # Extract all contents of the zip archive to the target directory
+                zip_file.extractall("backups")
+            shutil.copytree(f"backups/tmp_bckp", f"{self.contents_folder}/fonts", dirs_exist_ok=True)
+            shutil.rmtree("backups/tmp_bckp")
+            
         except Exception as e:
             backup_window.destroy()
             messagebox.showerror("Exception", "An error occured when reverting. Please try again, and make sure you've selected the proper folders.")
@@ -197,8 +205,6 @@ class App:
                 messagebox.showinfo("Success", "The backups have been cleared.")
             except Exception as e:
                 messagebox.showerror("Exception", "An error occured when deleting. Please try again, and if it still does not work, delete the backups folder manually.")
-        else:
-            messagebox.showinfo("Cancelled", "The operation was cancelled.")
 
     def exceptions(self):
         # Check if content folder has been selected
@@ -209,6 +215,7 @@ class App:
         # Create a new window for the exceptions function
         exceptions_window = tk.Tk()
         exceptions_window.resizable(False,False)
+        exceptions_window.iconbitmap("data/images/icon.ico")
         exceptions_window.title("Select exceptions")
         style = ThemedStyle(exceptions_window)
         style.theme_use("arc")
@@ -290,6 +297,7 @@ class App:
         # Create a new window for the exceptions function
         remove_exceptions_window = tk.Tk()
         remove_exceptions_window.resizable(False,False)
+        remove_exceptions_window.iconbitmap("data/images/icon.ico")
         remove_exceptions_window.title("Remove exceptions")
         style = ThemedStyle(remove_exceptions_window)
         style.theme_use("arc")
@@ -403,15 +411,22 @@ class App:
             if result:
                 try:
                     now = datetime.datetime.now()
-                    messagebox.showinfo("Preparing to save", "Your backup will now be saved. Expect a few seconds of unresponsiveness. If nothing happens after 5 seconds, try clicking on the program.")
-                    shutil.copytree(self.selected_folder, f"backups/contents_backup_{now.year}-{now.month}-{now.day}_{now.hour}-{now.minute}-{now.second}")
+                    messagebox.showinfo("Preparing to save", "Your backup will now be saved. The program may become unresponsive for a short time.")
+                    shutil.copytree(f"{self.selected_folder}/fonts", "backups/tmp_bckp")
+                    with zipfile.ZipFile(f"backups/fonts_backup_{now.year}-{now.month}-{now.day}_{now.hour}-{now.minute}-{now.second}.rfrbckp", 'w', zipfile.ZIP_DEFLATED) as zip_file:
+                        os.chdir("backups")
+                        for root, dirs, files in os.walk("tmp_bckp"):
+                            for file in files:
+                                zip_file.write(os.path.join(root, file))
+                            if os.path.basename(root) == "families":
+                                zip_file.write(os.path.join(root))
+                    os.chdir("../")
+                    shutil.rmtree("backups/tmp_bckp")
                     messagebox.showinfo("Success", "Backup saved successfully. Replacement will now begin.")
                 except Exception as e:
                     self.log(base64.b64encode("Backup error : {}".format(e).encode("utf-8")))
                     traceback.print_exc()
                     messagebox.showerror("Exception", "An error occured when saving the backup. The program will ignore this error and start replacing the fonts. If you'd like to cancel this process, please close the program.")
-            else:
-                messagebox.showinfo("Cancelled", "Backup not saved")
 
             # Update the progress bar to show the number of fonts
             self.progress["maximum"] = len(fonts)
@@ -482,6 +497,22 @@ class App:
         # Show a message box thanking the user for using the program
         messagebox.showinfo("Done", "Fonts replaced successfully! Thank you for using Roblox Font Replacer. Exceptions have been reset.")
         self.excluded_fonts = []
+
+    # Open the JSON file and load its contents into a dictionary
+    with open('config/changelog_data.json') as f:
+        data = json.load(f)
+
+    # Check the value of 'opened'
+    if data['opened'] == 'false':
+        # Show the changelog
+        messagebox.showinfo("Changelog", f"Short changelog for {data['version']} : \n{data['changelog']} \nThe program will now start.")
+        
+        # Update the value of 'opened'
+        data['opened'] = 'true'
+        
+        # Write the updated data back to the file
+        with open('config/changelog_data.json', 'w') as f:
+            json.dump(data, f)
 
 if __name__ == "__main__":
     root = tk.Tk()
