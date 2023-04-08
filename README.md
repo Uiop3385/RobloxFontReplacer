@@ -54,7 +54,14 @@ Backups take approximately 3-10 seconds to save depending on your computer's per
 
 # Developement :
 
-Everything is explained inside of main.py with comments. The program uses the following imports : tkinter for the UI, and a combination of os and shutil for the font replacement.
+Everything is explained inside of main.py with comments.
+To install all necessary packages, use the following command after downloading the full source code :
+```
+pip install -r requirements.txt
+```
+
+Make sure you have all the folders : backups, logs, data, and config.
+The file should then run **from an IDE**. It will not run from the Python shell. It does work with IDLE however.
 
 If you need any extra help, contact me on Discord at Uiop3385#4285 (ID : 611557419222302721)
 
