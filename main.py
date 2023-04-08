@@ -15,6 +15,8 @@ from tkinter import ttk
 from tkinter.font import Font
 from tkextrafont import Font as CFont
 from ttkthemes import themed_tk, ThemedStyle
+from tkinterweb import HtmlFrame
+
 class App:
     def __init__(self, root):
         self.root = root
@@ -22,27 +24,70 @@ class App:
         root.iconbitmap("data/images/icon.ico")
         self.root.title("Roblox Font Replacer by Uiop3385")
 
+        try:
+            # Load configuration files
+            with open("config/lang.strings", "r") as f:
+                self.translations = json.load(f)
+
+            with open("config/settings.config", "r") as f:
+                self.settings = json.load(f)
+            
+            with open("config/changelog_data.json", "r") as f:
+                self.data = json.load(f)
+        except Exception as e:
+            messagebox.showerror("Fatal load error!", f"Fatal error! Loading aborted. This is due to missing or corrupted configuration files. Try to redownload the program. Help for diagnosis : \n{e}")
+            root.destroy()
+
         # Set instance variables
         self.selected_font = ""
         self.selected_folder = ""
         self.log_file = None
-        self.version = "1.3.1"
+        self.version = "1.4.beta1"
         self.font_path = tk.StringVar()
         self.folder_path = tk.StringVar()
         self.excluded_fonts = []
+        try:
+            self.current_language = self.settings["language"]
+            self.theme = self.settings["theme"]
+        except Exception as e:
+            messagebox.showerror("Fatal load error!", f"Fatal error! Loading aborted. The main settings file is missing critical data. Try to redownload the program. Help for diagnosis : \n{e}")
+            root.destroy()
 
-        # Styling and stuff
-        font = CFont(file = "data/fonts/Roboto-Regular.ttf", family = "Roboto", size=12)
-        ttk.Style().configure("varela.TCheckbutton", font = Font(family = "Roboto", size = 12))
-        style = ThemedStyle(root)
-        style.theme_use("arc")
+        try:
+            # Display changelog
+            if self.data['opened'] == 'false':
+                # Show the changelog
+                messagebox.showinfo("Changelog", f"Short changelog for {self.data['version']} : \n{self.data['changelog']} \nThe program will now start.")
+                
+                # Update the value of 'opened'
+                self.data['opened'] = 'true'
+                
+                # Write the updated data back to the file
+                with open('config/changelog_data.json', 'w') as f:
+                    json.dump(self.data, f)
+            elif self.data['opened'] == "true":
+                print("Already showed changelog, proceeding.")
+            else:
+                raise Exception(f"The 'opened' data is set to an incorrect value. Its value is '{self.data['opened']}' instead of 'true' or 'false'.")
+        except Exception as e:
+            messagebox.showerror("Fatal load error!", f"Fatal error! Loading aborted. The changelog file is missing critical data. Try to redownload the program. Help for diagnosis : \n{e}")
+            root.destroy()
+
+        try:
+            # Styling and stuff
+            font = CFont(file = "data/fonts/Segoe UI.ttf", family = "Segoe UI", size=12)
+            ttk.Style().configure("segoe.TCheckbutton", font = Font(family = "Segoe UI", size = 12))
+            style = ThemedStyle(root)
+            style.theme_use(self.theme)
+        except Exception as e:
+            messagebox.showerror("Fatal load error!", f"Fatal error! Loading aborted. The UI font is missing and/or one of the specified themes is invalid, missing, or corrupted. Try to redownload the program. Help for diagnosis : \n{e}")
+            root.destroy()
       
         # Create widgets
-        
-        select_font_button = ttk.Button(text="Select Replacement Font", command=self.select_font)
-        select_folder_button = ttk.Button(text="Select content Folder", command=self.select_folder)
+        select_font_button = ttk.Button(text=self.translate("button1"), command=self.select_font)
+        select_folder_button = ttk.Button(text=self.translate("button2"), command=self.select_folder)
         replace_fonts_button = ttk.Button(text="Replace Fonts", command=self.replace_fonts)
-        self.logging_checkbox = ttk.Checkbutton(self.root, text="Enable logging", style="varela.TCheckbutton", command=self.toggle_logging)
+        self.logging_checkbox = ttk.Checkbutton(self.root, text="Enable logging", style="segoe.TCheckbutton", command=self.toggle_logging)
         self.logging_checkbox.state(['!alternate'])
         self.progress = ttk.Progressbar(orient="horizontal", length=200, mode="determinate")
         revert_button = ttk.Button(root, text="Revert from Backup", command=self.revert_from_backup)
@@ -50,18 +95,20 @@ class App:
         exceptions_button = ttk.Button(root, text = "Exclusions", command = self.exceptions)
         view_excluded_button = ttk.Button(root, text = "View Excluded Fonts", command = self.view_exceptions)
         remove_exclusions_button = ttk.Button(root, text = "Change Excluded Fonts", command = self.remove_exceptions)
+        misc = ttk.Button(root, text = "Miscellaneous", command = self.misc)
 
         # Create labels
-        me = Label(self.root, text="Made by Uiop3385", font = Font(family = "Roboto", size = 7))
-        self.running = Label(self.root, text = f"You're currently running version {self.version}", font = Font(family = "Roboto", size = 7))
-        text = Label(self.root, text="Welcome to Roblox Font Replacer!", font = Font(family = "Roboto", size = 11), pady = 10)
-        self.progress_label = Label(self.root, text="Progress: 0/??", font = Font(family = "Roboto", size = 12), pady = 5)
-        self.selected_font_label = Label(self.root, text = f"Selected : {self.font_path.get()}", font = Font(family = "Roboto", size = 8), pady = 5)
-        self.selected_folder_label = Label(self.root, text = f"Selected : {self.folder_path.get()}", font = Font(family = "Roboto", size = 8), pady = 5)
-        font_replacer = Label(self.root, text="Replace fonts :", font = Font(family = "Roboto", size = 11), pady = 5)
-        backup_reverter = Label(self.root, text="Backups :", font = Font(family = "Roboto", size = 11), pady = 5)
-        exceptions = Label(self.root, text="Exclusions :", font = Font(family = "Roboto", size = 10))
+        me = Label(self.root, text=self.translate("label1"), font = Font(family = "Segoe UI", size = 7))
+        self.running = Label(self.root, text = f"You're currently running version {self.version}", font = Font(family = "Segoe UI", size = 7))
+        text = Label(self.root, text="Welcome to Roblox Font Replacer!", font = Font(family = "Segoe UI", size = 11), pady = 10)
+        self.progress_label = Label(self.root, text="Status : Awaiting replacement...", font = Font(family = "Segoe UI", size = 10), pady = 5)
+        self.selected_font_label = Label(self.root, text = f"Selected : {self.font_path.get()}", font = Font(family = "Segoe UI", size = 8), pady = 5)
+        self.selected_folder_label = Label(self.root, text = f"Selected : {self.folder_path.get()}", font = Font(family = "Segoe UI", size = 8), pady = 5)
+        font_replacer = Label(self.root, text="Replace fonts :", font = Font(family = "Segoe UI", size = 11), pady = 5)
+        backup_reverter = Label(self.root, text="Backups :", font = Font(family = "Segoe UI", size = 11), pady = 5)
+        exceptions = Label(self.root, text="Exclusions :", font = Font(family = "Segoe UI", size = 10))
         frame_top = ttk.Frame(root, height=2, relief=tk.SUNKEN)
+        frame_semi_top = ttk.Frame(root, height=2, relief=tk.SUNKEN)
         mini_frame_top = ttk.Frame(root, height=2, relief=tk.SUNKEN)
         mini_frame_middle = ttk.Frame(root, height=2, relief=tk.SUNKEN)
         mini_frame_bottom = ttk.Frame(root, height=2, relief=tk.SUNKEN)
@@ -87,6 +134,8 @@ class App:
         self.logging_checkbox.pack(side = "top")
         self.progress.pack(side = "top", pady = 5)
         self.progress_label.pack(side = "top")
+        frame_semi_top.pack(fill = tk.X, padx = 15)
+        misc.pack(side = "top", pady = 5)
         self.running.pack(side = "bottom")
         frame_middle.pack(fill=tk.X, padx = 15)
         backup_reverter.pack(side = "top")
@@ -158,7 +207,7 @@ class App:
                 backup_window.geometry("100x10")
                 backup_window.iconbitmap("data/images/icon.ico")
                 style = ThemedStyle(backup_window)
-                style.theme_use("arc")
+                style.theme_use(self.theme)
                 self.progress = ttk.Progressbar(backup_window, mode="indeterminate")
                 self.progress.pack()
                 self.progress.start()
@@ -216,9 +265,9 @@ class App:
         exceptions_window = tk.Tk()
         exceptions_window.resizable(False,False)
         exceptions_window.iconbitmap("data/images/icon.ico")
-        exceptions_window.title("Select exceptions")
+        exceptions_window.title("Select exclusions")
         style = ThemedStyle(exceptions_window)
-        style.theme_use("arc")
+        style.theme_use(self.theme)
 
         # String explaining the function
         Label(exceptions_window, text="Select the fonts you want to exclude from the replacement :").pack(pady = 5)
@@ -298,15 +347,15 @@ class App:
         remove_exceptions_window = tk.Tk()
         remove_exceptions_window.resizable(False,False)
         remove_exceptions_window.iconbitmap("data/images/icon.ico")
-        remove_exceptions_window.title("Remove exceptions")
+        remove_exceptions_window.title("Remove exclusions")
         style = ThemedStyle(remove_exceptions_window)
-        style.theme_use("arc")
+        style.theme_use(self.theme)
 
         # String explaining the function
         Label(remove_exceptions_window, text="Select the fonts you want to remove from your list of exclusions :").pack(pady = 5)
 
         # List to display all the excluded fonts
-        font_list = tk.Listbox(remove_exceptions_window, selectmode="extended")
+        font_list = ttk.Listbox(remove_exceptions_window, selectmode="extended")
 
         # Get all the excluded fonts
         try:
@@ -363,6 +412,117 @@ class App:
         confirm_button.pack(pady = 5)
 
         remove_exceptions_window.mainloop()
+
+    def translate(self, string_id):
+        try:
+            # Check for the string ID in the strings file
+            if string_id in self.translations[self.current_language]:
+                return self.translations[self.current_language][string_id]
+            else:
+                # If the string ID is not found in the translation dictionary, just return the original string ID
+                messagebox.showwarning("Important error!", f"One, some, or all strings of the selected language, '{self.current_language}', are missing, more particularly '{string_id}'. Fallback strings will be used instead. Consider changing translations.")
+                return string_id
+        except Exception as e:
+            self.settings["language"] = "english"
+            with open("config/settings.config", "w") as f:
+                json.dump(self.settings, f)
+            messagebox.showerror("Fatal translation error!", f"The selected language '{self.current_language}' was not found, and the program is unable to start without a valid translation. We've changed your language back to the default, English, so you can load again. The program will now close. Close any errors that may appear after.")
+            root.destroy()
+
+    def misc(self):
+        # Create a new window for the misc function
+        misc_window = tk.Tk()
+        misc_window.resizable(False,False)
+        misc_window.iconbitmap("data/images/icon.ico")
+        misc_window.title("Miscellaneous")
+        style = ThemedStyle(misc_window)
+        style.theme_use(self.theme)
+
+        # Set variables
+        theme_options = ["Adapta", "Aquativo", "Arc", "Black", "Blue", "Breeze", "Clearlooks", "Elegance", "Equilux", "ITFT1", "Keramik", "Kroc", "Plastik", "Radiance", "SCID Blue", "SCID Green", "SCID Grey", "SCID Mint", "SCID Pink", "SCID Purple", "SCID Yellow", "Smog", "Windows XP Blue", "Yaru"]
+        valid_theme_options = ["adapta", "aquativo", "arc", "black", "blue", "breeze", "clearlooks", "Elegance", "equilux", "itft1", "keramik", "kroc", "plastik", "radiance", "scidblue", "scidgreen", "scidgrey", "scidmint", "scidpink", "scidpurple", "scidyellow", "smog", "winxpblue", "yaru"]
+
+        def submit():
+            try:
+                # Get the current theme from the combobox
+                current_theme = self.theme_combobox.get()
+
+                # Check for the special theme
+                if current_theme == "Windows XP Blue":
+                    current_theme = "winxpblue"
+                else:
+                    # Convert the current theme to a valid theme
+                    current_theme = current_theme.replace(" ", "").lower()
+
+                # Update the settings dictionary
+                self.settings["theme"] = current_theme
+
+                # Save the updated settings to the JSON file
+                with open("config/settings.config", "w") as f:
+                    json.dump(self.settings, f)
+                
+                messagebox.showinfo("Successfully applied!", "Your new settings have been successfully applied! Please restart the program to see changes.")
+                misc_window.destroy()
+            except:
+                messagebox.showerror("Exception", "We could not apply your settings due to an error.")
+                misc_window.destroy()
+
+        # Important pre-load scripts
+        try:
+            if "scid" in self.settings["theme"]:
+                if "blue" in self.settings["theme"]:
+                    value = "SCID Blue"
+                if "green" in self.settings["theme"]:
+                    value = "SCID Green"
+                if "grey" in self.settings["theme"]:
+                    value = "SCID Grey"
+                if "mint" in self.settings["theme"]:
+                    value = "SCID Mint"
+                if "pink" in self.settings["theme"]:
+                    value = "SCID Pink"
+                if "purple" in self.settings["theme"]:
+                    value = "SCID Purple"
+                if "yellow" in self.settings["theme"]:
+                    value = "SCID Yellow"
+            elif "win" in self.settings["theme"]:
+                value = "Windows XP Blue"
+            elif "itf" in self.settings["theme"]:
+                value = "ITFT1"
+            else:
+                value = self.settings["theme"].capitalize()
+        except:
+            messagebox.showerror("Exception", "An error has occured while loading this window, please try again.")
+            misc_window.destroy()
+        
+        # Create widgets
+        settings_label = tk.Label(misc_window, text="Settings :", font = Font(family = "Segoe UI", size = 11))
+        theme_label = tk.Label(misc_window, text="Theme : ")
+        self.theme_combobox = ttk.Combobox(misc_window, values=theme_options, state="readonly")
+        self.theme_combobox.current(theme_options.index(value))
+        theme_help = ttk.Button(misc_window, text="?", width = 2, command = lambda:self.open_help("https://rfr-help.pages.dev/Themes.md"))
+        submit_button = ttk.Button(misc_window, text="Submit", command=submit)
+
+        # Lay out widgets
+        settings_label.grid(row=0, column=0, padx=5, pady = 5, sticky="nswe", columnspan=3)
+        theme_label.grid(row=1, column=0, padx=5, pady=5)
+        self.theme_combobox.grid(row=1, column=1, padx=5, pady=5)
+        theme_help.grid(row=1, column=2, padx = 5, pady=5)
+        submit_button.grid(row=2, column=0, padx=5, pady=5, sticky="nswe", columnspan=3)
+
+    def open_help(self, topic):
+        # Create a new window for the help function
+        help_window = tk.Tk()
+        help_window.resizable(False,False)
+        help_window.iconbitmap("data/images/icon.ico")
+        help_window.title("Help")
+        style = ThemedStyle(help_window)
+        style.theme_use(self.theme)
+
+        frame = HtmlFrame(help_window)
+        frame.load_website(topic)
+        frame.pack(fill="both", expand=True)
+
+        help_window.mainloop()
 
     def replace_fonts(self):
         # First line of error prevention
@@ -486,7 +646,7 @@ class App:
                 # Update the progress bar and label
                 self.progress["value"] = i + 1
                 print(self.progress["value"])
-                self.progress_label["text"] = f"Progress: {i+1}/{len(fonts)}"
+                self.progress_label["text"] = "Status : Replacing..."
                 self.root.update()
 
         # Reset the progress bar
@@ -495,24 +655,10 @@ class App:
         self.log(base64.b64encode("Process ended with status code 200".encode("utf-8")))
 
         # Show a message box thanking the user for using the program
+        self.progress_label["text"] = "Status : Finished!"
         messagebox.showinfo("Done", "Fonts replaced successfully! Thank you for using Roblox Font Replacer. Exceptions have been reset.")
         self.excluded_fonts = []
-
-    # Open the JSON file and load its contents into a dictionary
-    with open('config/changelog_data.json') as f:
-        data = json.load(f)
-
-    # Check the value of 'opened'
-    if data['opened'] == 'false':
-        # Show the changelog
-        messagebox.showinfo("Changelog", f"Short changelog for {data['version']} : \n{data['changelog']} \nThe program will now start.")
-        
-        # Update the value of 'opened'
-        data['opened'] = 'true'
-        
-        # Write the updated data back to the file
-        with open('config/changelog_data.json', 'w') as f:
-            json.dump(data, f)
+        self.progress_label["text"] = "Status : Awaiting replacement..."
 
 if __name__ == "__main__":
     root = tk.Tk()

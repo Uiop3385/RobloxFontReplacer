@@ -1,0 +1,6 @@
+Hello! This is the logs folder.
+For now, this will be the only file inside here. Whenever you decide to log replacement, this is where the log will be saved.
+Logs are compressed and encrypted.
+Please forward any errors via the issues on the project's GitHub page with tag Exception. Make sure not to forget to include the log with the report!
+Enjoy RFR!
+- Uiop3385
