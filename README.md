@@ -4,6 +4,10 @@ This program and this guide were made for use on Windows ; because seriously, wh
 
 **RFR is the easiest and most powerful way to change your roblox fonts, with it's friendly User Interface.**
 
+This is what the program looks like as of 1.3.1 :
+
+![image](https://user-images.githubusercontent.com/116633390/232840786-d0cf6a73-cb33-4086-b5fd-01c147538822.png)
+
 # How to use :
 **Keep the program open during the entire process.**
 
