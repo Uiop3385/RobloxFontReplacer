@@ -4,6 +4,10 @@ This program and this guide were made for use on Windows ; because seriously, wh
 
 **RFR is the easiest and most powerful way to change your roblox fonts, with it's friendly User Interface.**
 
+This is what the program looks like as of 1.3.1 :
+
+![image](https://user-images.githubusercontent.com/116633390/232840786-d0cf6a73-cb33-4086-b5fd-01c147538822.png)
+
 # How to use :
 **Keep the program open during the entire process.**
 
@@ -54,7 +58,14 @@ Backups take approximately 3-10 seconds to save depending on your computer's per
 
 # Developement :
 
-Everything is explained inside of main.py with comments. The program uses the following imports : tkinter for the UI, and a combination of os and shutil for the font replacement.
+Everything is explained inside of main.py with comments.
+To install all necessary packages, use the following command after downloading the full source code :
+```
+pip install -r requirements.txt
+```
+
+Make sure you have all the folders : backups, logs, data, and config.
+The file should then run **from an IDE**. It will not run from the Python shell. It does work with IDLE however.
 
 If you need any extra help, contact me on Discord at Uiop3385#4285 (ID : 611557419222302721)
 
