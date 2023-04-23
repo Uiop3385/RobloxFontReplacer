@@ -1,1 +1,1 @@
-{"opened": "true", "version": "1.3.1", "changelog": "Backing up has been made highly more efficient : nearly 10 times faster than before! This changelog is also new; you'll only ever see it once, when running the program for the first time."}
+{"opened": "false", "version": "1.4.beta1.patch1", "changelog": "Highly improved the loading time of child windows of the program, added support for Windows 7, shrunk the size of the program by 2, extra help documents, made them available offline."}
