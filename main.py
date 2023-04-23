@@ -15,7 +15,6 @@ from tkinter import ttk
 from tkinter.font import Font
 from tkextrafont import Font as CFont
 from ttkthemes import themed_tk, ThemedStyle
-from tkinterweb import HtmlFrame
 
 class App:
     def __init__(self, root):
@@ -36,13 +35,13 @@ class App:
                 self.data = json.load(f)
         except Exception as e:
             messagebox.showerror("Fatal load error!", f"Fatal error! Loading aborted. This is due to missing or corrupted configuration files. Try to redownload the program. Help for diagnosis : \n{e}")
-            root.destroy()
+            self.quit()
 
         # Set instance variables
         self.selected_font = ""
         self.selected_folder = ""
         self.log_file = None
-        self.version = "1.4.beta1"
+        self.version = "1.4.beta1.patch1"
         self.font_path = tk.StringVar()
         self.folder_path = tk.StringVar()
         self.excluded_fonts = []
@@ -51,7 +50,7 @@ class App:
             self.theme = self.settings["theme"]
         except Exception as e:
             messagebox.showerror("Fatal load error!", f"Fatal error! Loading aborted. The main settings file is missing critical data. Try to redownload the program. Help for diagnosis : \n{e}")
-            root.destroy()
+            self.quit()
 
         try:
             # Display changelog
@@ -71,7 +70,7 @@ class App:
                 raise Exception(f"The 'opened' data is set to an incorrect value. Its value is '{self.data['opened']}' instead of 'true' or 'false'.")
         except Exception as e:
             messagebox.showerror("Fatal load error!", f"Fatal error! Loading aborted. The changelog file is missing critical data. Try to redownload the program. Help for diagnosis : \n{e}")
-            root.destroy()
+            self.quit()
 
         try:
             # Styling and stuff
@@ -80,8 +79,11 @@ class App:
             style = ThemedStyle(root)
             style.theme_use(self.theme)
         except Exception as e:
-            messagebox.showerror("Fatal load error!", f"Fatal error! Loading aborted. The UI font is missing and/or one of the specified themes is invalid, missing, or corrupted. Try to redownload the program. Help for diagnosis : \n{e}")
-            root.destroy()
+            self.settings["theme"] = "arc"
+            with open("config/settings.config", "w") as f:
+                json.dump(self.settings, f)
+            messagebox.showerror("Fatal load error!", f"Fatal error! Loading aborted. The UI font is missing and/or one of the specified themes is invalid, missing, or corrupted. We've changed the theme you chose back to the default, Arc. Try restarting, and if this error keeps on happening, try to redownload the program. Help for diagnosis : \n{e}")
+            self.quit()
       
         # Create widgets
         select_font_button = ttk.Button(text=self.translate("button1"), command=self.select_font)
@@ -262,7 +264,7 @@ class App:
             return
 
         # Create a new window for the exceptions function
-        exceptions_window = tk.Tk()
+        exceptions_window = tk.Toplevel()
         exceptions_window.resizable(False,False)
         exceptions_window.iconbitmap("data/images/icon.ico")
         exceptions_window.title("Select exclusions")
@@ -321,7 +323,7 @@ class App:
                 for index in font_list.curselection():
                     self.excluded_fonts.append(font_list.get(index))
                 messagebox.showinfo("Info", f"The following fonts will not be replaced : {self.excluded_fonts}")
-                exceptions_window.destroy()
+                exceptions_window.withdraw()
             except Exception as e:
                 exceptions_window.destroy()
                 messagebox.showerror("Exception", "An error occured while confirming changes. Please try again.")
@@ -344,7 +346,7 @@ class App:
             return
 
         # Create a new window for the exceptions function
-        remove_exceptions_window = tk.Tk()
+        remove_exceptions_window = tk.Toplevel()
         remove_exceptions_window.resizable(False,False)
         remove_exceptions_window.iconbitmap("data/images/icon.ico")
         remove_exceptions_window.title("Remove exclusions")
@@ -355,7 +357,7 @@ class App:
         Label(remove_exceptions_window, text="Select the fonts you want to remove from your list of exclusions :").pack(pady = 5)
 
         # List to display all the excluded fonts
-        font_list = ttk.Listbox(remove_exceptions_window, selectmode="extended")
+        font_list = tk.Listbox(remove_exceptions_window, selectmode="extended")
 
         # Get all the excluded fonts
         try:
@@ -403,7 +405,7 @@ class App:
                     self.excluded_fonts.remove(font_list.get(index))
                     unexcluded_fonts.append(font_list.get(index))
                 messagebox.showinfo("Info", f"The following fonts will still be excluded : {self.excluded_fonts}, and the following fonts will no longer be excluded : {unexcluded_fonts}")
-                remove_exceptions_window.destroy()
+                remove_exceptions_window.withdraw()
             except Exception as e:
                 remove_exceptions_window.destroy()
                 messagebox.showerror("Exception", "An error occured while confirming changes. Please try again.")
@@ -427,11 +429,11 @@ class App:
             with open("config/settings.config", "w") as f:
                 json.dump(self.settings, f)
             messagebox.showerror("Fatal translation error!", f"The selected language '{self.current_language}' was not found, and the program is unable to start without a valid translation. We've changed your language back to the default, English, so you can load again. The program will now close. Close any errors that may appear after.")
-            root.destroy()
+            self.quit()
 
     def misc(self):
         # Create a new window for the misc function
-        misc_window = tk.Tk()
+        misc_window = tk.Toplevel()
         misc_window.resizable(False,False)
         misc_window.iconbitmap("data/images/icon.ico")
         misc_window.title("Miscellaneous")
@@ -439,17 +441,19 @@ class App:
         style.theme_use(self.theme)
 
         # Set variables
-        theme_options = ["Adapta", "Aquativo", "Arc", "Black", "Blue", "Breeze", "Clearlooks", "Elegance", "Equilux", "ITFT1", "Keramik", "Kroc", "Plastik", "Radiance", "SCID Blue", "SCID Green", "SCID Grey", "SCID Mint", "SCID Pink", "SCID Purple", "SCID Yellow", "Smog", "Windows XP Blue", "Yaru"]
-        valid_theme_options = ["adapta", "aquativo", "arc", "black", "blue", "breeze", "clearlooks", "Elegance", "equilux", "itft1", "keramik", "kroc", "plastik", "radiance", "scidblue", "scidgreen", "scidgrey", "scidmint", "scidpink", "scidpurple", "scidyellow", "smog", "winxpblue", "yaru"]
+        theme_options = ["Adapta", "Aquativo", "Arc", "Black", "Blue", "Breeze", "Clearlooks", "Elegance", "Equilux", "ITFT1", "Keramik", "Kroc", "Plastik", "Radiance", "SCID Blue", "SCID Green", "SCID Grey", "SCID Mint", "SCID Pink", "SCID Purple", "SCID Yellow", "Smog", "Ubuntu", "Windows XP Blue", "Yaru"]
+        valid_theme_options = ["adapta", "aquativo", "arc", "black", "blue", "breeze", "clearlooks", "Elegance", "equilux", "itft1", "keramik_alt", "kroc", "plastik", "radiance", "scidblue", "scidgreen", "scidgrey", "scidmint", "scidpink", "scidpurple", "scidyellow", "smog", "ubuntu", "winxpblue", "yaru"]
 
         def submit():
             try:
                 # Get the current theme from the combobox
                 current_theme = self.theme_combobox.get()
 
-                # Check for the special theme
+                # Check for the special themes
                 if current_theme == "Windows XP Blue":
                     current_theme = "winxpblue"
+                elif current_theme == "Keramik":
+                    current_theme = "keramik_alt"
                 else:
                     # Convert the current theme to a valid theme
                     current_theme = current_theme.replace(" ", "").lower()
@@ -462,7 +466,7 @@ class App:
                     json.dump(self.settings, f)
                 
                 messagebox.showinfo("Successfully applied!", "Your new settings have been successfully applied! Please restart the program to see changes.")
-                misc_window.destroy()
+                misc_window.withdraw()
             except:
                 messagebox.showerror("Exception", "We could not apply your settings due to an error.")
                 misc_window.destroy()
@@ -488,41 +492,52 @@ class App:
                 value = "Windows XP Blue"
             elif "itf" in self.settings["theme"]:
                 value = "ITFT1"
+            elif "_alt" in self.settings["theme"]:
+                value = "Keramik"
             else:
                 value = self.settings["theme"].capitalize()
         except:
             messagebox.showerror("Exception", "An error has occured while loading this window, please try again.")
             misc_window.destroy()
-        
+
+        def cancel():
+            result = messagebox.askyesno("Cancel", "Are you sure you wish to cancel the changes?")
+            if result:
+                misc_window.withdraw()
+
         # Create widgets
         settings_label = tk.Label(misc_window, text="Settings :", font = Font(family = "Segoe UI", size = 11))
         theme_label = tk.Label(misc_window, text="Theme : ")
         self.theme_combobox = ttk.Combobox(misc_window, values=theme_options, state="readonly")
         self.theme_combobox.current(theme_options.index(value))
-        theme_help = ttk.Button(misc_window, text="?", width = 2, command = lambda:self.open_help("https://rfr-help.pages.dev/Themes.md"))
-        submit_button = ttk.Button(misc_window, text="Submit", command=submit)
+        theme_help = ttk.Button(misc_window, text="?", width = 2, command = lambda:self.open_help("themes.md.html", title = "Themes"))
+        submit_button = ttk.Button(misc_window, text="Apply changes", command=submit)
+        cancel_button = ttk.Button(misc_window, text="Cancel changes", command=cancel)
+        top_frame = ttk.Frame(misc_window, height=2, relief=tk.SUNKEN)
+        help_label = tk.Label(misc_window, text="Help :", font = Font(family = "Segoe UI", size = 11))
+        full_help = ttk.Button(misc_window, text="Full help", command = lambda:self.open_help("help.md.html", title = "Full help"))
+        list_help = ttk.Button(misc_window, text="List of help documents", width = 22, command = lambda:self.open_help("list.md.html", title = "Help list"))
 
         # Lay out widgets
-        settings_label.grid(row=0, column=0, padx=5, pady = 5, sticky="nswe", columnspan=3)
+        settings_label.grid(row=0, column=0, padx=5, sticky="nswe", columnspan=3)
         theme_label.grid(row=1, column=0, padx=5, pady=5)
         self.theme_combobox.grid(row=1, column=1, padx=5, pady=5)
         theme_help.grid(row=1, column=2, padx = 5, pady=5)
-        submit_button.grid(row=2, column=0, padx=5, pady=5, sticky="nswe", columnspan=3)
+        submit_button.grid(row=2, column=0, padx=50, pady=5, sticky="nswe", columnspan=3)
+        cancel_button.grid(row=3, column=0, padx=50, pady=5, sticky="nswe", columnspan=3)
+        top_frame.grid(row=4, column=0, padx= 15, sticky="nswe", columnspan=3)
+        help_label.grid(row=5, column=0, padx= 5, sticky="nswe", columnspan=3)
+        full_help.grid(row=6, column=0, padx = 50, pady=5, sticky="nswe", columnspan=3)
+        list_help.grid(row=7, column=0, padx = 50, pady=5, sticky="nswe", columnspan=3)
 
-    def open_help(self, topic):
-        # Create a new window for the help function
-        help_window = tk.Tk()
-        help_window.resizable(False,False)
-        help_window.iconbitmap("data/images/icon.ico")
-        help_window.title("Help")
-        style = ThemedStyle(help_window)
-        style.theme_use(self.theme)
-
-        frame = HtmlFrame(help_window)
-        frame.load_website(topic)
-        frame.pack(fill="both", expand=True)
-
-        help_window.mainloop()
+    def open_help(self, topic, title):
+        if topic == "list.md.html":
+            messagebox.showwarning("WIP", "This help document is not currently available in this version of Roblox Font Replacer!")
+        else:
+            result = messagebox.askyesno("Info", "This will open a local HTML file in your browser. Are you sure you wish to continue?")
+            if result:
+                link = "file://"+os.getcwd()+"/help/"+topic
+                webbrowser.open_new(link)
 
     def replace_fonts(self):
         # First line of error prevention
