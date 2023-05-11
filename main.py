@@ -10,6 +10,7 @@ import sys
 import threading
 import zipfile
 import json
+import sv_ttk
 from tkinter import filedialog, messagebox, Label
 from tkinter import ttk
 from tkinter.font import Font
@@ -34,7 +35,7 @@ class App:
             with open("config/changelog_data.json", "r") as f:
                 self.data = json.load(f)
         except Exception as e:
-            messagebox.showerror("Fatal load error!", f"Fatal error! Loading aborted. This is due to missing or corrupted configuration files. Try to redownload the program. Help for diagnosis : \n{e}")
+            messagebox.showerror("Fatal load error!", f"Fatal error! Loading aborted. This is due to missing or corrupted configuration files. Try to redownload the program or put back the original configuration files for this version. Help for diagnosis : \n{e}")
             self.quit()
 
         # Set instance variables
@@ -48,8 +49,9 @@ class App:
         try:
             self.current_language = self.settings["language"]
             self.theme = self.settings["theme"]
+            self.dark_enabled = self.settings["dark"]
         except Exception as e:
-            messagebox.showerror("Fatal load error!", f"Fatal error! Loading aborted. The main settings file is missing critical data. Try to redownload the program. Help for diagnosis : \n{e}")
+            messagebox.showerror("Fatal load error!", f"Fatal error! Loading aborted. The main settings file is missing critical data, or you transferred your configuration from an older version of RFR which is missing newer settings that are required for this version to run. Try to redownload the program or put back the original configuration files for this version. Help for diagnosis : \n{e}")
             self.quit()
 
         try:
@@ -69,20 +71,24 @@ class App:
             else:
                 raise Exception(f"The 'opened' data is set to an incorrect value. Its value is '{self.data['opened']}' instead of 'true' or 'false'.")
         except Exception as e:
-            messagebox.showerror("Fatal load error!", f"Fatal error! Loading aborted. The changelog file is missing critical data. Try to redownload the program. Help for diagnosis : \n{e}")
+            messagebox.showerror("Fatal load error!", f"Fatal error! Loading aborted. The changelog file is missing critical data. Try to redownload the program or put back the original configuration files for this version. Help for diagnosis : \n{e}")
             self.quit()
 
         try:
             # Styling and stuff
             font = CFont(file = "data/fonts/Segoe UI.ttf", family = "Segoe UI", size=12)
             ttk.Style().configure("segoe.TCheckbutton", font = Font(family = "Segoe UI", size = 12))
+            if self.dark_enabled == True:
+                sv_ttk.set_theme("dark")
+            else:
+                sv_ttk.set_theme("light")
             style = ThemedStyle(root)
             style.theme_use(self.theme)
         except Exception as e:
             self.settings["theme"] = "arc"
             with open("config/settings.config", "w") as f:
                 json.dump(self.settings, f)
-            messagebox.showerror("Fatal load error!", f"Fatal error! Loading aborted. The UI font is missing and/or one of the specified themes is invalid, missing, or corrupted. We've changed the theme you chose back to the default, Arc. Try restarting, and if this error keeps on happening, try to redownload the program. Help for diagnosis : \n{e}")
+            messagebox.showerror("Fatal load error!", f"Fatal error! Loading aborted. The UI font is missing and/or one of the specified themes is invalid, missing, or corrupted. We've changed the theme you chose back to the default, Arc. Try restarting, and if this error keeps on happening, try to redownload the program or put back the original files of the data folder for this version. Help for diagnosis : \n{e}")
             self.quit()
       
         # Create widgets
@@ -433,6 +439,7 @@ class App:
 
     def misc(self):
         # Create a new window for the misc function
+        global check
         misc_window = tk.Toplevel()
         misc_window.resizable(False,False)
         misc_window.iconbitmap("data/images/icon.ico")
@@ -441,8 +448,8 @@ class App:
         style.theme_use(self.theme)
 
         # Set variables
-        theme_options = ["Adapta", "Aquativo", "Arc", "Black", "Blue", "Breeze", "Clearlooks", "Elegance", "Equilux", "ITFT1", "Keramik", "Kroc", "Plastik", "Radiance", "SCID Blue", "SCID Green", "SCID Grey", "SCID Mint", "SCID Pink", "SCID Purple", "SCID Yellow", "Smog", "Ubuntu", "Windows XP Blue", "Yaru"]
-        valid_theme_options = ["adapta", "aquativo", "arc", "black", "blue", "breeze", "clearlooks", "Elegance", "equilux", "itft1", "keramik_alt", "kroc", "plastik", "radiance", "scidblue", "scidgreen", "scidgrey", "scidmint", "scidpink", "scidpurple", "scidyellow", "smog", "ubuntu", "winxpblue", "yaru"]
+        theme_options = ["Adapta", "Alternative Default theme", "Aqua (MacOS only)", "Aquativo", "Arc", "Black", "Blue", "Breeze", "Clam theme", "Classic theme", "Clearlooks", "Default (no theme)", "Elegance", "Equilux", "ITFT1", "Keramik", "Kroc", "Native Windows theme", "Plastik", "Radiance", "SCID Blue", "SCID Green", "SCID Grey", "SCID Mint", "SCID Pink", "SCID Purple", "SCID Yellow", "Smog", "Ubuntu", "Windows Vista Native theme", "Windows XP Blue", "Windows XP Native theme", "Yaru"]
+        valid_theme_options = ["adapta", "alt", "aqua", "aquativo", "arc", "black", "blue", "breeze", "clam", "classic", "clearlooks", "default", "elegance", "equilux", "itft1", "keramik_alt", "kroc", "winnative", "plastik", "radiance", "scidblue", "scidgreen", "scidgrey", "scidmint", "scidpink", "scidpurple", "scidyellow", "smog", "ubuntu", "vista", "winxpblue", "xpnative", "yaru"]
 
         def submit():
             try:
@@ -450,10 +457,26 @@ class App:
                 current_theme = self.theme_combobox.get()
 
                 # Check for the special themes
-                if current_theme == "Windows XP Blue":
-                    current_theme = "winxpblue"
+                if current_theme == "Alternative Default theme":
+                    current_theme = "alt"
+                elif current_theme == "Aqua (MacOS only)":
+                    current_theme = "aqua"
+                elif current_theme == "Clam theme":
+                    current_theme = "clam"
+                elif current_theme == "Classic theme":
+                    current_theme = "classic"
+                elif current_theme == "Default (no theme)":
+                    current_theme = "default"
                 elif current_theme == "Keramik":
                     current_theme = "keramik_alt"
+                elif current_theme == "Native Windows theme":
+                    current_theme = "winnative"
+                elif current_theme == "Windows Vista Native theme":
+                    current_theme = "vista"
+                elif current_theme == "Windows XP Blue":
+                    current_theme = "winxpblue"
+                elif current_theme == "Windows XP Native theme":
+                    current_theme = "xpnative"
                 else:
                     # Convert the current theme to a valid theme
                     current_theme = current_theme.replace(" ", "").lower()
@@ -488,12 +511,28 @@ class App:
                     value = "SCID Purple"
                 if "yellow" in self.settings["theme"]:
                     value = "SCID Yellow"
-            elif "win" in self.settings["theme"]:
+            elif "winxp" in self.settings["theme"]:
                 value = "Windows XP Blue"
             elif "itf" in self.settings["theme"]:
                 value = "ITFT1"
             elif "_alt" in self.settings["theme"]:
                 value = "Keramik"
+            elif "alt" in self.settings["theme"]:
+                value = "Alternative Default theme"
+            elif "clam" in self.settings["theme"]:
+                value = "Clam theme"
+            elif "class" in self.settings["theme"]:
+                value = "Classic theme"
+            elif "default" in self.settings["theme"]:
+                value = "Default (no theme)"
+            elif "winnat" in self.settings["theme"]:
+                value = "Native Windows theme"
+            elif "vista" in self.settings["theme"]:
+                value = "Windows Vista Native theme"
+            elif "xpnat" in self.settings["theme"]:
+                value = "Windows XP Native theme"
+            elif "aqua" in self.settings["theme"] and "tivo" not in self.settings["theme"]:
+                value = "Aqua (MacOS only)"
             else:
                 value = self.settings["theme"].capitalize()
         except:
@@ -505,33 +544,58 @@ class App:
             if result:
                 misc_window.withdraw()
 
+        def set_dark():
+            result = messagebox.askyesno(icon = "warning", title = "Attention", message = "Dark mode for the themes in Roblox Font Replacer is not a native feature. You may experience several visual bugs or other problems. This change takes action immediately, but will not be saved until you press Apply changes. View the help section for this setting for further information.\nAre you sure you wish to proceed?")
+            if result:
+                sv_ttk.set_theme("dark")
+                style = ThemedStyle(misc_window)
+                style.theme_use(self.theme)
+                self.settings["dark"] = True
+        
+        def disable_dark():
+            sv_ttk.set_theme("light")
+            style = ThemedStyle(misc_window)
+            style.theme_use(self.theme)
+            self.settings["dark"] = False
+            messagebox.showwarning("Done!", "Successfully reverted back to light mode. This change will only be saved once you press Apply changes.")
+
         # Create widgets
         settings_label = tk.Label(misc_window, text="Settings :", font = Font(family = "Segoe UI", size = 11))
         theme_label = tk.Label(misc_window, text="Theme : ")
         self.theme_combobox = ttk.Combobox(misc_window, values=theme_options, state="readonly")
         self.theme_combobox.current(theme_options.index(value))
-        theme_help = ttk.Button(misc_window, text="?", width = 2, command = lambda:self.open_help("themes.md.html", title = "Themes"))
+        theme_help = ttk.Button(misc_window, text="?", width = 2, command = lambda:self.open_help("themes.md.html"))
+        separator_frame_1 = ttk.Frame(misc_window, height=2, relief=tk.SUNKEN)
+        dark_mode_button = ttk.Button(misc_window, text="Enable dark mode", command=set_dark)
+        disable_dark_mode_button = ttk.Button(misc_window, text="Disable dark mode", command=disable_dark)
+        dark_help = ttk.Button(misc_window, text="?", width = 2, command = lambda:self.open_help("dark.md.html"))
+        separator_frame_2 = ttk.Frame(misc_window, height=2, relief=tk.SUNKEN)
         submit_button = ttk.Button(misc_window, text="Apply changes", command=submit)
         cancel_button = ttk.Button(misc_window, text="Cancel changes", command=cancel)
         top_frame = ttk.Frame(misc_window, height=2, relief=tk.SUNKEN)
         help_label = tk.Label(misc_window, text="Help :", font = Font(family = "Segoe UI", size = 11))
-        full_help = ttk.Button(misc_window, text="Full help", command = lambda:self.open_help("help.md.html", title = "Full help"))
-        list_help = ttk.Button(misc_window, text="List of help documents", width = 22, command = lambda:self.open_help("list.md.html", title = "Help list"))
+        full_help = ttk.Button(misc_window, text="Full help", command = lambda:self.open_help("help.md.html"))
+        list_help = ttk.Button(misc_window, text="List of help documents", width = 22, command = lambda:self.open_help("list.md.html"))
 
         # Lay out widgets
         settings_label.grid(row=0, column=0, padx=5, sticky="nswe", columnspan=3)
         theme_label.grid(row=1, column=0, padx=5, pady=5)
         self.theme_combobox.grid(row=1, column=1, padx=5, pady=5)
         theme_help.grid(row=1, column=2, padx = 5, pady=5)
-        submit_button.grid(row=2, column=0, padx=50, pady=5, sticky="nswe", columnspan=3)
-        cancel_button.grid(row=3, column=0, padx=50, pady=5, sticky="nswe", columnspan=3)
-        top_frame.grid(row=4, column=0, padx= 15, sticky="nswe", columnspan=3)
-        help_label.grid(row=5, column=0, padx= 5, sticky="nswe", columnspan=3)
-        full_help.grid(row=6, column=0, padx = 50, pady=5, sticky="nswe", columnspan=3)
-        list_help.grid(row=7, column=0, padx = 50, pady=5, sticky="nswe", columnspan=3)
+        separator_frame_1.grid(row=2, column=0, padx= 100, sticky="nswe", columnspan=3)
+        dark_mode_button.grid(row=3, column=0, padx=5, pady=5)
+        disable_dark_mode_button.grid(row=3, column=1, padx=5, pady=5)
+        dark_help.grid(row=3, column=2, padx = 5, pady=5)
+        separator_frame_2.grid(row=4, column=0, padx= 100, sticky="nswe", columnspan=3)
+        submit_button.grid(row=5, column=0, padx=50, pady=5, sticky="nswe", columnspan=3)
+        cancel_button.grid(row=6, column=0, padx=50, pady=5, sticky="nswe", columnspan=3)
+        top_frame.grid(row=7, column=0, padx= 15, sticky="nswe", columnspan=3)
+        help_label.grid(row=8, column=0, padx= 5, sticky="nswe", columnspan=3)
+        full_help.grid(row=9, column=0, padx = 50, pady=5, sticky="nswe", columnspan=3)
+        list_help.grid(row=10, column=0, padx = 50, pady=5, sticky="nswe", columnspan=3)
 
-    def open_help(self, topic, title):
-        if topic == "list.md.html":
+    def open_help(self, topic):
+        if topic == "list.md.html" or topic == "dark.md.html":
             messagebox.showwarning("WIP", "This help document is not currently available in this version of Roblox Font Replacer!")
         else:
             result = messagebox.askyesno("Info", "This will open a local HTML file in your browser. Are you sure you wish to continue?")
@@ -669,7 +733,7 @@ class App:
 
         self.log(base64.b64encode("Process ended with status code 200".encode("utf-8")))
 
-        # Show a message box thanking the user for using the program
+        # Show a message box thanking the user for using the program and update the status
         self.progress_label["text"] = "Status : Finished!"
         messagebox.showinfo("Done", "Fonts replaced successfully! Thank you for using Roblox Font Replacer. Exceptions have been reset.")
         self.excluded_fonts = []
