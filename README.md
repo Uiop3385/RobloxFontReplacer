@@ -54,7 +54,7 @@ All the information you need is provided via info boxes, so please read them thr
 
 To find your contents folder to restore, follow the same steps as the ones you would to select your contents folder normally.
 
-Backups take approximately 3-10 seconds to save depending on your computer's performances, so please remain patient during the operation. There will only be an error if the program displays an error, so if no error message appears, continue waiting.
+Backups take a second or less to save depending on your computer's performances.
 
 # Developement :
 
