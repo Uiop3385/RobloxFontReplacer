@@ -1,5 +1,1 @@
-<<<<<<< HEAD
-{"opened": "true", "version": "1.4.beta1.patch1", "changelog": "Highly improved the loading time of child windows of the program, added support for Windows 7, shrunk the size of the program by 2, extra help documents, made them available offline."}
-=======
 {"opened": "false", "version": "1.4.beta1.patch1", "changelog": "Highly improved the loading time of child windows of the program, added support for Windows 7, shrunk the size of the program by 2, extra help documents, made them available offline."}
->>>>>>> 2c76042338b1f766eb6f01599efd10f60079a7db
