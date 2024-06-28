@@ -22,7 +22,7 @@ class App:
         self.root = root
         self.root.resizable(False,False)
         root.iconbitmap("data/images/icon.ico")
-        self.root.title("Roblox Font Replacer by Uiop3385")
+        self.root.title("Roblox Font Replacer")
 
         try:
             # Load configuration files
